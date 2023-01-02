@@ -244,6 +244,23 @@ def diff_removed_files(dr1, dr2) -> list:
             res.append(file_i)
     return res
 
+def diff_moved_files(dr1, dr2, old_folder_path, new_folder_path) -> list:
+    files_rel_old, files_rel_new = list(dr1.keys()), list(dr2.keys())
+    res = []
+    for file_i_old in files_rel_old:
+        S = f"File \"[{old_folder_path}] {file_i_old}\" has been moved (renamed) to: \n"
+        S += f"\t\t{dr1[file_i_old]}\n"
+        IF_AT_LEAST_ONE = False
+        for file_i_new in files_rel_new:
+            if(dr1[file_i_old] == dr2[file_i_new]):
+                if(file_i_old != file_i_new):
+                    if(file_i_new not in files_rel_old):
+                        IF_AT_LEAST_ONE = True
+                        S += f"\t[{new_folder_path}] {file_i_new}"
+        if(IF_AT_LEAST_ONE == True):
+            res.append(S)
+    return res
+
 def diff_identical_files(d1, d2, old_folder_path, new_folder_path) -> list:
     len_diff = len(old_folder_path) - len(new_folder_path)
     old_folder_prefix, new_folder_prefix = "", ""
@@ -251,18 +268,18 @@ def diff_identical_files(d1, d2, old_folder_path, new_folder_path) -> list:
         new_folder_prefix = " "*len_diff
     else:
         old_folder_prefix = " "*(-len_diff)
-    files_rel_old, files_rel_new = list(d1.keys()), list(d2.keys())
+    files_abs_old, files_abs_new = list(d1.keys()), list(d2.keys())
     hashes1, hashes2 = list(d1.values()), list(d2.values())
     hashes = set(hashes1 + hashes2)
     res = []
     for hash_i in hashes:
         item_fits = 0
         S = f"* Hash \"{hash_i}\" have files: \n"
-        for file_i in files_rel_new:
+        for file_i in files_abs_new:
             if(d2[file_i] == hash_i):
                 item_fits += 1
                 S += f"\t- {new_folder_prefix}{file_i}\n"
-        for file_i in files_rel_old:
+        for file_i in files_abs_old:
             if(d1[file_i] == hash_i):
                 item_fits += 1
                 S += f"\t- {old_folder_prefix}{file_i}\n"
@@ -272,9 +289,9 @@ def diff_identical_files(d1, d2, old_folder_path, new_folder_path) -> list:
 
 def main_diff(args: list):
     argc = len(args)
-    mode_explain_str = "\t- n: show New files\n\t- c: show Changed files\n\t- r: show Removed files\n\t- s: show Identical files"
+    mode_explain_str = "\t- n: show New files\n\t- c: show Changed files\n\t- r: show Removed files\n\t- m: show Moved (renamed) files\n\t- s: show Identical files"
     if(argc != 3):
-        pout("Syntax error. Expected: \"python folder_work.py diff {n|c|r|i} {folder_old} {folder_new}\", where: ")
+        pout("Syntax error. Expected: \"python folder_work.py diff {n|c|r|m|i} {folder_old} {folder_new}\", where: ")
         pout(mode_explain_str)
         exit()
     mode = args[0]
@@ -289,8 +306,8 @@ def main_diff(args: list):
     if(is_folder(folder_new_abs) == False):
         pout(f"\"{folder_new_abs}\" is not folder. ")
     for letter_i in mode:
-        if(letter_i not in "ncri"):
-            pout(f"Cannot understand \"{letter_i}\" in \"{mode}\". Expected: n, c, r, i or their combination: ")
+        if(letter_i not in "ncrmi"):
+            pout(f"Cannot understand \"{letter_i}\" in \"{mode}\". Expected: n, c, r, m, i or their combination: ")
             pout(mode_explain_str)
             exit()
         if(mode.count(letter_i) > 1):
@@ -299,8 +316,6 @@ def main_diff(args: list):
     d1, d2, dr1, dr2 = {}, {}, {}, {}
     files_abs_old = sorted(getFilesList(folder_old_abs))
     files_abs_new = sorted(getFilesList(folder_new_abs))
-    #files_rel_old = [rel_path(file_i, files_abs_old) for file_i in files_abs_old]
-    #files_rel_new = [rel_path(file_i, files_abs_new) for file_i in files_abs_new]
     gi, N = 0, len(files_abs_old)+len(files_abs_new)
     for file_i in files_abs_old:
         gi+=1
@@ -346,6 +361,14 @@ def main_diff(args: list):
             if(len(removed_files_rel) > 0):
                 for file_i in removed_files_rel:
                     pout(f"\t{os.path.join(folder_old_abs, file_i)}")
+            else:
+                pout("\tNo such files. ")
+        elif(mode_i == "m"):
+            moved_files_rel = diff_moved_files(dr1, dr2, folder_old_abs, folder_new_abs)
+            pout("\n====================\n* Moved (renamed) files: ")
+            if(len(moved_files_rel) > 0):
+                for file_i in moved_files_rel:
+                    pout(f"{file_i}")
             else:
                 pout("\tNo such files. ")
         elif(mode_i == "i"):
