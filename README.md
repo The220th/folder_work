@@ -36,7 +36,7 @@
 > python folder_work.py repeats {folder_path}
 ```
 
-# Сравнение двух директорий
+# Сравнение изменений в двух директориях
 
 ``` bash
 > python folder_work.py diff {n|c|r|m|i} {folder_old} {folder_new} #, где:
@@ -46,4 +46,10 @@
 #   m (moved): Покажет переименованные файлы
 #   i (identical): Покажет идентичные файлы
 #   Или любая их комбинация
+```
+
+# Сравнение двух директорий
+
+``` bash
+> python folder_work.py difx {folder1} {folder2}
 ```
