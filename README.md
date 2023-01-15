@@ -53,3 +53,34 @@
 ``` bash
 > python folder_work.py difx {folder1} {folder2}
 ```
+
+# Выполнение пользовательской команды со всеми файлами
+
+## Выполнение команды для файлов с изменением
+
+``` bash
+> python folder_work.py exec {folder_in} {folder_out} {command} #, где
+    # {command} - это команда для оболочки, в которой будут заменены:
+        # {in} на каждый файл из {folder_in}
+        # {out} на каждый файл из {folder_out}
+```
+
+Например, сжать все видео файлы в папке `/home/user/in` так, чтобы выходные файлы были в директории `/home/user/out`:
+
+``` bash
+> python folder_work.py exec "/home/user/in" "/home/user/out" "ffmpeg -i \"{in}\" -map 0 -vf \"scale=1280:720\" -b:v 1M \"{out}\""
+```
+
+## Выполнение команды для файлов без переноса
+
+``` bash
+> python folder_work.py exec {folder_in} "" {command} #, где
+    # {command} - это команда для оболочки, в которой будут заменены:
+        # {in} на каждый файл из {folder_in}
+```
+
+Например, проверить тип каждого файла:
+
+``` bash
+> python folder_work.py exec "/path/to/files" "" "file \"{in}\" >> output.txt"
+```
