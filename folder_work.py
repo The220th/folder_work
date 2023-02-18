@@ -84,6 +84,7 @@ def exe(command : str, debug : bool = True) -> tuple:
         pout(f"> {command}")
 
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # https://stackoverflow.com/questions/1180606/using-subprocess-popen-for-process-with-large-output
     out = process.stdout.read().decode("utf-8")
     err = process.stderr.read().decode("utf-8")
     errcode = process.returncode
